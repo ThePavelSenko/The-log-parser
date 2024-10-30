@@ -1,6 +1,4 @@
-package backend.academy;
-
-import lombok.*;
+package backend.academy.logParseComponents;
 
 public record LogReport(String ipAddress,
                         String timestamp,
