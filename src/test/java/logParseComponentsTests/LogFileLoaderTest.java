@@ -1,12 +1,13 @@
 package logParseComponentsTests;
 
-import backend.academy.logParseComponents.*;
-import dataForTesting.*;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.*;
-import org.junit.jupiter.params.provider.*;
-import java.io.*;
-import java.util.*;
+import backend.academy.logParseComponents.LogFileLoader;
+import dataForTesting.TestDataProvider;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import java.io.IOException;
+import java.util.List;
 
 public class LogFileLoaderTest {
     @ParameterizedTest
