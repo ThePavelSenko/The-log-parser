@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Scanner;
+import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
+@UtilityClass
 public final class Logic { // Made the class final to prevent subclassing
 
     // Constants for date-time format and prompts
@@ -24,15 +26,12 @@ public final class Logic { // Made the class final to prevent subclassing
     private static final String MESSAGE_INSTRUCTIONS =
         "Enter the start and end times in the format dd/MMM/yyyy HH:mm:ss. If you want to skip, just press Enter.";
 
-    // Private constructor to prevent instantiation
-    private Logic() {
-    }
-
     public static void startLogic(String fileOrURL) {
         String fileName = extractFileName(fileOrURL);
+        PrintStream out = System.out;
 
         try (Scanner scanner = new Scanner(System.in)) {
-            log.info(MESSAGE_INSTRUCTIONS);
+            out.println(MESSAGE_INSTRUCTIONS);
 
             Optional<LocalDateTime> start = promptForDateTime(scanner, PROMPT_START_TIME);
             Optional<LocalDateTime> end = promptForDateTime(scanner, PROMPT_END_TIME);
@@ -47,7 +46,7 @@ public final class Logic { // Made the class final to prevent subclassing
             // Generate report if observers are available
             if (!LogParser.observers().isEmpty()) {
                 LogReportFormatter reportFormatter = new LogReportFormatter(fileName, LogParser.observers());
-                log.info(reportFormatter.generateAdocReport());
+                out.println(reportFormatter.generateAdocReport());
             } else {
                 log.warn("No observers available to generate a report.");
             }

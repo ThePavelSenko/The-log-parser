@@ -20,7 +20,6 @@ public class LogReportFormatter {
     private static final String KEY_HEADER = "Key";
     private static final String PIPE_SPACE = " | ";
     private static final String PIPE_NEWLINE = " |\n";
-    private static final String COLON_PIPE_NEWLINE = ":|\n";
     private static final int DEFAULT_METRIC_WIDTH = 6;
     private static final int DEFAULT_VALUE_WIDTH = 5;
     private static final int DEFAULT_KEY_WIDTH = 3;
@@ -92,15 +91,21 @@ public class LogReportFormatter {
         int maxValueWidth = Math.max(VALUE_HEADER.length(),
             singleValueMetrics.stream().mapToInt(arr -> arr[1].length()).max().orElse(DEFAULT_VALUE_WIDTH));
 
-        report.append(PIPE_SPACE).append(String.format("%-" + maxMetricWidth + "s", METRIC_HEADER))
-            .append(PIPE_SPACE).append(String.format("%-" + maxValueWidth + "s", VALUE_HEADER))
-            .append(PIPE_NEWLINE)
-            .append("|:").append("-".repeat(maxMetricWidth)).append(COLON_PIPE_NEWLINE)
-            .append(":").append("-".repeat(maxValueWidth)).append(COLON_PIPE_NEWLINE);
+        report.append(PIPE_SPACE)
+            .append(String.format("%-" + maxMetricWidth + "s", METRIC_HEADER))
+            .append(PIPE_SPACE)
+            .append(String.format("%-" + maxValueWidth + "s", VALUE_HEADER))
+            .append(PIPE_NEWLINE);
+
+        // Remove or comment out this line to delete the separator row
+        // report.append("|:").append("-".repeat(maxMetricWidth)).append(":|")
+        //     .append("-".repeat(maxValueWidth)).append(":").append(COLON_PIPE_NEWLINE);
 
         for (String[] metric : singleValueMetrics) {
-            report.append(PIPE_SPACE).append(String.format("%-" + maxMetricWidth + "s", metric[0]))
-                .append(PIPE_SPACE).append(String.format("%-" + maxValueWidth + "s", metric[1]))
+            report.append(PIPE_SPACE)
+                .append(String.format("%-" + maxMetricWidth + "s", metric[0]))
+                .append(PIPE_SPACE)
+                .append(String.format("%-" + maxValueWidth + "s", metric[1]))
                 .append(PIPE_NEWLINE);
         }
     }
@@ -120,15 +125,21 @@ public class LogReportFormatter {
             int maxMapValueWidth = Math.max(VALUE_HEADER.length(),
                 map.values().stream().mapToInt(value -> value.toString().length()).max().orElse(DEFAULT_VALUE_WIDTH));
 
-            report.append(PIPE_SPACE).append(String.format("%-" + maxKeyWidth + "s", KEY_HEADER))
-                .append(PIPE_SPACE).append(String.format("%-" + maxMapValueWidth + "s", VALUE_HEADER))
-                .append(PIPE_NEWLINE)
-                .append("|:").append("-".repeat(maxKeyWidth)).append(COLON_PIPE_NEWLINE)
-                .append(":").append("-".repeat(maxMapValueWidth)).append(COLON_PIPE_NEWLINE);
+            report.append(PIPE_SPACE)
+                .append(String.format("%-" + maxKeyWidth + "s", KEY_HEADER))
+                .append(PIPE_SPACE)
+                .append(String.format("%-" + maxMapValueWidth + "s", VALUE_HEADER))
+                .append(PIPE_NEWLINE);
+
+            // Remove or comment out this line to delete the separator row
+            // report.append("|:").append("-".repeat(maxKeyWidth)).append(":|")
+            //     .append("-".repeat(maxMapValueWidth)).append(":").append(COLON_PIPE_NEWLINE);
 
             for (Map.Entry<?, ?> mapEntry : map.entrySet()) {
-                report.append(PIPE_SPACE).append(String.format("%-" + maxKeyWidth + "s", mapEntry.getKey()))
-                    .append(PIPE_SPACE).append(String.format("%-" + maxMapValueWidth + "s", mapEntry.getValue()))
+                report.append(PIPE_SPACE)
+                    .append(String.format("%-" + maxKeyWidth + "s", mapEntry.getKey()))
+                    .append(PIPE_SPACE)
+                    .append(String.format("%-" + maxMapValueWidth + "s", mapEntry.getValue()))
                     .append(PIPE_NEWLINE);
             }
         }

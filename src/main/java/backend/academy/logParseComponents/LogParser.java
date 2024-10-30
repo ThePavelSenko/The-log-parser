@@ -36,6 +36,8 @@ public final class LogParser {
     /**
      * Adds an observer to the list, allowing dynamic registration of observers.
      *
+     * <p>Note: Use this method carefully as improper use may lead to unintended side effects.</p>
+     *
      * @param observer the observer to add
      */
     public static void addObserver(LogObserver observer) {
@@ -111,5 +113,9 @@ public final class LogParser {
                 log.error("Error notifying observer {}: {}", observer.getClass().getSimpleName(), e.getMessage(), e);
             }
         }
+    }
+
+    public List<LogObserver> observers() {
+        return new ArrayList<>(OBSERVERS);
     }
 }

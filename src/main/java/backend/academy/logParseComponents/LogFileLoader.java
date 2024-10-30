@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -29,9 +30,12 @@ public final class LogFileLoader {
      * @param endTime the end timestamp for filtering logs (exclusive)
      * @return a list of log lines matching the criteria
      * @throws IOException if an I/O error occurs during file or URL reading
+     * @throws LogParseException if the provided path is not valid
      */
     public static List<String> loadLogs(String fileOrUrl, LocalDateTime startTime, LocalDateTime endTime)
-        throws IOException {
+        throws IOException, LogParseException {
+
+        validateInputPath(fileOrUrl);  // Validate the input path
         List<String> logLines = new ArrayList<>();
 
         if (isUrl(fileOrUrl)) {
@@ -45,7 +49,7 @@ public final class LogFileLoader {
                 throw e;
             }
         } else {
-            logLines = Files.readAllLines(Path.of(fileOrUrl));
+            logLines = Files.readAllLines(Paths.get(fileOrUrl));
         }
 
         // Filter log lines by timestamps if startTime and endTime are specified
@@ -64,7 +68,40 @@ public final class LogFileLoader {
     }
 
     /**
-     * Processes log lines, filtering by timestamp if startTime and endTime are provided.
+     * Validates the input path, checking if it is a valid file or accessible URL.
+     *
+     * @param path the file path or URL to validate
+     * @throws LogParseException if the path is invalid or inaccessible
+     */
+    private static void validateInputPath(String path) throws LogParseException {
+        if (isUrl(path)) {
+            // Validate URL format and accessibility
+            try {
+                URL url = new URL(path);
+                // Attempt to open a connection to check accessibility
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+                    log.info("URL is valid and accessible: {}", path);
+                } catch (IOException e) {
+                    log.error("URL is not accessible: {}", path, e);
+                    throw new LogParseException("URL is not accessible: " + path);
+                }
+            } catch (IOException e) {
+                log.error("Invalid URL format: {}", path, e);
+                throw new LogParseException("Invalid URL format: " + path);
+            }
+        } else {
+            // Validate file path
+            Path filePath = Paths.get(path);
+            if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
+                log.error("The file does not exist or is not readable: {}", path);
+                throw new LogParseException("Invalid file path: " + path);
+            }
+        }
+    }
+
+
+    /**
+     * Processes log lines, filtering by timestamp if startTime and/or endTime are provided.
      *
      * @param logLines the list of log lines to process
      * @param startTime the start timestamp for filtering (inclusive)
@@ -81,12 +118,11 @@ public final class LogFileLoader {
                     String timeStamp = matcher.group(2); // Timestamp is the second group
                     LocalDateTime logTime = parseLogTimestamp(timeStamp);
 
-                    // Add lines within the specified time range, or all lines if range is null
-                    if (startTime != null && endTime != null) {
-                        if ((logTime.isAfter(startTime) || logTime.isEqual(startTime)) && logTime.isBefore(endTime)) {
-                            filteredLines.add(line);
-                        }
-                    } else {
+                    // Filter by startTime and endTime independently
+                    boolean isAfterOrEqualStart = startTime == null || !logTime.isBefore(startTime);
+                    boolean isBeforeEnd = endTime == null || logTime.isBefore(endTime);
+
+                    if (isAfterOrEqualStart && isBeforeEnd) {
                         filteredLines.add(line);
                     }
                 } else {
@@ -98,6 +134,7 @@ public final class LogFileLoader {
         }
         return filteredLines;
     }
+
 
     /**
      * Parses the log timestamp into a LocalDateTime.
