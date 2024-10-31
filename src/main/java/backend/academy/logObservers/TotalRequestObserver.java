@@ -1,7 +1,7 @@
 package backend.academy.logObservers;
 
-import backend.academy.*;
-import lombok.*;
+import backend.academy.logParseComponents.LogReport;
+import lombok.Getter;
 
 @Getter
 public class TotalRequestObserver implements LogObserver {

@@ -1,8 +1,9 @@
 package backend.academy.logObservers;
 
-import backend.academy.*;
-import lombok.*;
-import java.util.*;
+import backend.academy.logParseComponents.LogReport;
+import java.util.HashMap;
+import java.util.Map;
+import lombok.Getter;
 
 @Getter
 public class RecourseRequestsObserver implements LogObserver {
@@ -10,6 +11,6 @@ public class RecourseRequestsObserver implements LogObserver {
 
     @Override
     public void update(LogReport log) {
-        resourceRequests.put(log.referrer(), resourceRequests.getOrDefault(log.referrer(), 0) + 1);
+        resourceRequests.merge(log.referrer(), 1, Integer::sum);
     }
 }

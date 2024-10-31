@@ -1,8 +1,8 @@
 package backend.academy.logObservers;
 
-import backend.academy.*;
-import lombok.*;
+import backend.academy.logParseComponents.LogReport;
 import java.util.*;
+import lombok.Getter;
 
 @Getter
 public class CodeStatusesObserver implements LogObserver {
@@ -10,6 +10,7 @@ public class CodeStatusesObserver implements LogObserver {
 
     @Override
     public void update(LogReport log) {
-        codeStatuses.put(log.httpStatusCode(), codeStatuses.getOrDefault(log.httpStatusCode(), 0) + 1);
+        String statusCode = log.httpStatusCode();
+        codeStatuses.merge(statusCode, 1, Integer::sum);
     }
 }
