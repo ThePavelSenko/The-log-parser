@@ -1,7 +1,8 @@
 package backend.academy.logObservers;
 
 import backend.academy.logParseComponents.LogReport;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Getter;
 
 @Getter
