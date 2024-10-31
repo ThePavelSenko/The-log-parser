@@ -22,7 +22,7 @@ class LogReportFormatterTest {
 
         try {
             List<String> logLines = LogFileLoader.loadLogs(TestDataProvider.SAMPLE_FILE);
-            String fileName = "dataForTesting/TestLogFile";
+            String fileName = "TestLogFile";
             LogReportFormatter formatter = new LogReportFormatter(fileName, LogParser.observers());
 
             for (String line : logLines) {

@@ -2,7 +2,7 @@ package dataForTesting;
 
 public class TestDataProvider {
     public static final String SAMPLE_FILE =
-        "src/test/java/DataForTesting/TestLogFile";
+        "src/main/resources/TestLogFile";
 
     public static final String SAMPLE_URL =
         "https://raw.githubusercontent.com/elastic/examples/master/Common%20Data%20Formats/nginx_logs/nginx_logs";
