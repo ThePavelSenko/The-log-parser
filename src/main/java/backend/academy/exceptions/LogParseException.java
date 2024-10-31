@@ -1,4 +1,4 @@
-package backend.academy;
+package backend.academy.exceptions;
 
 public class LogParseException extends RuntimeException {
     public LogParseException(String message) {
