@@ -3,6 +3,7 @@ package backend.academy.logParseComponents;
 import backend.academy.logObservers.LogObserver;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -61,10 +62,11 @@ public class LogReportFormatter {
     /**
      * Processes each observer's methods to collect metrics.
      */
+
     private void processObserverMetrics(LogObserver observer, String observerName, List<String[]> singleValueMetrics,
         Map<String, Map<?, ?>> mapMetrics) {
         for (Method method : observer.getClass().getDeclaredMethods()) {
-            if (method.getParameterCount() == 0) {
+            if (Modifier.isPublic(method.getModifiers()) && method.getParameterCount() == 0) {
                 try {
                     Object value = method.invoke(observer);
                     String metricName = createFriendlyName(observerName, method.getName());
@@ -97,10 +99,6 @@ public class LogReportFormatter {
             .append(String.format("%-" + maxValueWidth + "s", VALUE_HEADER))
             .append(PIPE_NEWLINE);
 
-        // Remove or comment out this line to delete the separator row
-        // report.append("|:").append("-".repeat(maxMetricWidth)).append(":|")
-        //     .append("-".repeat(maxValueWidth)).append(":").append(COLON_PIPE_NEWLINE);
-
         for (String[] metric : singleValueMetrics) {
             report.append(PIPE_SPACE)
                 .append(String.format("%-" + maxMetricWidth + "s", metric[0]))
@@ -130,10 +128,6 @@ public class LogReportFormatter {
                 .append(PIPE_SPACE)
                 .append(String.format("%-" + maxMapValueWidth + "s", VALUE_HEADER))
                 .append(PIPE_NEWLINE);
-
-            // Remove or comment out this line to delete the separator row
-            // report.append("|:").append("-".repeat(maxKeyWidth)).append(":|")
-            //     .append("-".repeat(maxMapValueWidth)).append(":").append(COLON_PIPE_NEWLINE);
 
             for (Map.Entry<?, ?> mapEntry : map.entrySet()) {
                 report.append(PIPE_SPACE)

@@ -3,7 +3,10 @@ package backend.academy;
 import backend.academy.logObservers.AverageResponseSizeObserver;
 import backend.academy.logObservers.CodeStatusesObserver;
 import backend.academy.logObservers.RecourseRequestsObserver;
+import backend.academy.logObservers.RequestsObservers;
+import backend.academy.logObservers.ResponseSizePercentileObserver;
 import backend.academy.logObservers.TotalRequestObserver;
+import backend.academy.logObservers.UniqueUsersObserver;
 import backend.academy.logParseComponents.LogParser;
 import backend.academy.logParseComponents.Logic;
 import java.io.PrintStream;
@@ -17,6 +20,9 @@ public class Main {
         LogParser.addObserver(new CodeStatusesObserver());
         LogParser.addObserver(new RecourseRequestsObserver());
         LogParser.addObserver(new AverageResponseSizeObserver());
+        LogParser.addObserver(new ResponseSizePercentileObserver());
+        LogParser.addObserver(new RequestsObservers());
+        LogParser.addObserver(new UniqueUsersObserver());
 
         try (Scanner scanner = new Scanner(System.in)) {
             PrintStream out = System.out;
