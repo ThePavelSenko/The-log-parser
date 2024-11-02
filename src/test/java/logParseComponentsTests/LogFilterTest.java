@@ -1,13 +1,17 @@
 package logParseComponentsTests;
 
-import backend.academy.logParseComponents.*;
-import java.io.*;
-import java.util.*;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.*;
-import org.junit.jupiter.params.provider.*;
-import static dataForTesting.TestDataProvider.*;
-import static org.assertj.core.api.Assertions.*;
+import backend.academy.logParseComponents.LogFileLoader;
+import backend.academy.logParseComponents.LogFilter;
+import java.io.IOException;
+import java.util.List;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import static dataForTesting.TestDataProvider.SAMPLE_FILE;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 public class LogFilterTest {
     private static List<String> logsBeforeFilter;;
@@ -18,7 +22,7 @@ public class LogFilterTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
+    @org.junit.jupiter.params.provider.CsvSource({
         "user agent, Debian",
         "request, GET"
     })

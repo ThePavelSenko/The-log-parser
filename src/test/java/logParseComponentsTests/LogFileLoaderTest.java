@@ -1,13 +1,14 @@
 package logParseComponentsTests;
 
+import backend.academy.exceptions.LogParseException;
 import backend.academy.logParseComponents.LogFileLoader;
 import dataForTesting.TestDataProvider;
+import java.io.IOException;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import java.io.IOException;
-import java.util.List;
 
 public class LogFileLoaderTest {
     @ParameterizedTest
@@ -24,5 +25,14 @@ public class LogFileLoaderTest {
         } catch (IOException e) {
             throw new RuntimeException("Test didn't pass due to IO error", e);
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "Invalid file",
+        "https://invalidurl"
+    })
+    void testInvalidLoad(String fileOrUrl) {
+        Assertions.assertThrows(LogParseException.class, () -> LogFileLoader.loadLogs(fileOrUrl));
     }
 }
