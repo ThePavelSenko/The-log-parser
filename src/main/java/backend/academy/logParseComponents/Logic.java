@@ -14,9 +14,8 @@ import lombok.extern.log4j.Log4j2;
 
 @Log4j2
 @UtilityClass
-public final class Logic { // Made the class final to prevent subclassing
+public final class Logic {
 
-    // Constants for date-time format and prompts
     private static final DateTimeFormatter DATE_FORMATTER =
         DateTimeFormatter.ofPattern("dd/MMM/yyyy HH:mm:ss", Locale.ENGLISH);
     private static final String PROMPT_START_TIME = "Start time (or press Enter to skip): ";
@@ -25,6 +24,8 @@ public final class Logic { // Made the class final to prevent subclassing
         "Invalid format. Please enter the date in format dd/MMM/yyyy HH:mm:ss, e.g., 31/Aug/2024 15:30:00.";
     private static final String MESSAGE_INSTRUCTIONS =
         "Enter the start and end times in the format dd/MMM/yyyy HH:mm:ss. If you want to skip, just press Enter.";
+    private static final String PROMPT_FIELD_FILTER = "Enter the field to filter by (e.g., 'ip address'): ";
+    private static final String PROMPT_VALUE_FILTER = "Enter the value to filter by: ";
 
     public static void startLogic(String fileOrURL) {
         String fileName = extractFileName(fileOrURL);
@@ -38,8 +39,16 @@ public final class Logic { // Made the class final to prevent subclassing
 
             List<String> logsBeforeParse = LogFileLoader.loadLogs(fileOrURL, start.orElse(null), end.orElse(null));
 
+            // Filter logs by specified field and value
+            out.print(PROMPT_FIELD_FILTER);
+            String field = scanner.nextLine().trim();
+            out.print(PROMPT_VALUE_FILTER);
+            String value = scanner.nextLine().trim();
+
+            List<String> filteredLogs = LogFilter.sortLogsByInputFields(logsBeforeParse, field, value);
+
             // Parse logs and notify observers
-            for (String log : logsBeforeParse) {
+            for (String log : filteredLogs) {
                 LogParser.parseLog(log);
             }
 
@@ -52,17 +61,15 @@ public final class Logic { // Made the class final to prevent subclassing
             }
 
         } catch (IOException | IllegalStateException e) {
-            log.error("An error occurred while processing logs: {0}");
+            log.error("An error occurred while processing logs: {}", e.getMessage());
         }
     }
 
-    // Extracts the file name from the given path or URL
     private static String extractFileName(String fileOrURL) {
         String[] folders = fileOrURL.split("/");
         return folders[folders.length - 1];
     }
 
-    // Prompts the user for date and time input with validation
     private static Optional<LocalDateTime> promptForDateTime(Scanner scanner, String prompt) {
         PrintStream out = System.out;
         while (true) {

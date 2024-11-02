@@ -1,58 +1,82 @@
 package backend.academy.logParseComponents;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
+
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+@Log4j2
+@UtilityClass
 public final class LogFilter {
 
-    public static final DateTimeFormatter DATE_FORMATTER =
-        DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+    private static final List<String> POSSIBLE_FIELDS = List.of(
+        "ip address", "request", "status code", "response size", "referrer", "user agent"
+    );
 
-    private LogFilter() {
-        throw new UnsupportedOperationException("Utility class");
+    /**
+     * Filters and sorts log entries based on the specified field and value.
+     *
+     * @param logs  the list of logs to filter
+     * @param field the field name to filter by
+     * @param value the value to filter by
+     * @return a sorted list of filtered logs
+     */
+    public static List<String> sortLogsByInputFields(List<String> logs, String field, String value) {
+        if (logs == null || logs.isEmpty()) {
+            log.warn("No logs provided for filtering.");
+            return List.of();
+        }
+
+        if (field == null || field.isBlank() || value == null || value.isBlank()) {
+            log.info("Field or value is empty, returning logs without filtering.");
+            return new ArrayList<>(logs); // Возвращаем все логи без фильтрации
+        }
+
+        String fieldLower = field.toLowerCase();
+        String valueLower = value.toLowerCase();
+
+        if (!POSSIBLE_FIELDS.contains(fieldLower)) {
+            log.error("Invalid input field: {}", field);
+            throw new IllegalArgumentException("Invalid input field: " + field);
+        }
+
+        List<String> filteredLogs = new ArrayList<>();
+        try {
+            Pattern pattern = Pattern.compile(LogParser.LOG_PATTERN);
+            for (String logEntry : logs) {
+                Matcher matcher = pattern.matcher(logEntry);
+
+                if (matcher.find()) {
+                    String fieldValue = extractField(matcher, fieldLower);
+                    if (fieldValue != null && fieldValue.toLowerCase().contains(valueLower)) {
+                        filteredLogs.add(logEntry);
+                    }
+                }
+            }
+            filteredLogs.sort(Comparator.naturalOrder()); // Сортировка по алфавиту
+        } catch (Exception e) {
+            log.error("Unexpected error while filtering logs: {}", e.getMessage(), e);
+        }
+
+        return filteredLogs;
     }
 
     /**
-     * Filters and sorts logs by a specified time range.
-     *
-     * @param logs      the list of logs to filter and sort
-     * @param startTime the start of the time range
-     * @param endTime   the end of the time range
-     * @return a list of filtered and sorted logs within the specified time range
+     * Extracts the field value based on the given field name directly from the matcher.
      */
-    public static List<LogReport> filterAndSortLogsByTimeRange(
-        List<LogReport> logs,
-        LocalDateTime startTime,
-        LocalDateTime endTime) {
-        return logs.stream()
-            .map(LogFilter::parseLogTimestamp)
-            .flatMap(Optional::stream)  // Only proceed with successfully parsed timestamps
-            .filter(entry -> isWithinRange(entry.timestamp(), startTime, endTime))
-            .sorted(Comparator.comparing(LogReportWithParsedTime::timestamp))
-            .map(LogReportWithParsedTime::logReport)
-            .collect(Collectors.toList());
-    }
-
-    private static Optional<LogReportWithParsedTime> parseLogTimestamp(LogReport log) {
-        try {
-            LocalDateTime timestamp = LocalDateTime.parse(log.timestamp(), DATE_FORMATTER);
-            return Optional.of(new LogReportWithParsedTime(log, timestamp));
-        } catch (DateTimeParseException e) {
-            System.err.println("Invalid timestamp format for log: " + log.timestamp());
-            return Optional.empty();  // Return empty Optional for logs with invalid timestamp format
-        }
-    }
-
-    private static boolean isWithinRange(LocalDateTime timestamp, LocalDateTime startTime, LocalDateTime endTime) {
-        return (timestamp.isAfter(startTime) || timestamp.isEqual(startTime)) && timestamp.isBefore(endTime);
-    }
-
-    private record LogReportWithParsedTime(LogReport logReport, LocalDateTime timestamp) {
+    private static String extractField(Matcher matcher, String field) {
+        return switch (field) {
+            case "ip address" -> matcher.group(1);
+            case "request" -> matcher.group(3);
+            case "status code" -> matcher.group(4);
+            case "response size" -> matcher.group(5);
+            case "referrer" -> matcher.group(6);
+            case "user agent" -> matcher.group(7);
+            default -> null;
+        };
     }
 }

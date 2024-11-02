@@ -1,47 +1,57 @@
 package logParseComponentsTests;
 
-import backend.academy.logParseComponents.LogFilter;
-import backend.academy.logParseComponents.LogParser;
-import backend.academy.logParseComponents.LogReport;
-import dataForTesting.TestDataProvider;
-import static org.assertj.core.api.Assertions.assertThat;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
+import backend.academy.logParseComponents.*;
+import java.io.*;
+import java.util.*;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.*;
+import org.junit.jupiter.params.provider.*;
+import static dataForTesting.TestDataProvider.*;
+import static org.assertj.core.api.Assertions.*;
 
 public class LogFilterTest {
-    List<LogReport> logList = new ArrayList<>();
+    private static List<String> logsBeforeFilter;;
 
-    @BeforeEach
-    void setUp() {
-        LogReport earlyLogReport = LogParser.parseLog(TestDataProvider.SAMPLE_EARLY_LOG);
+    @BeforeAll
+    static void setUp() throws IOException {
+        logsBeforeFilter = LogFileLoader.loadLogs(SAMPLE_FILE);
+    }
 
-        LogReport lateLogReport = LogParser.parseLog(TestDataProvider.SAMPLE_LATE_LOG);
+    @ParameterizedTest
+    @CsvSource({
+        "user agent, Debian",
+        "request, GET"
+    })
+    void testValidFilteredAllLogs(String field, String value) {
+        List<String> logsAfterFilter = LogFilter.sortLogsByInputFields(logsBeforeFilter, field, value);
 
-        logList.addAll(List.of(lateLogReport, earlyLogReport));
+        assertThat(logsAfterFilter.size()).isEqualTo(4);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "ip addrEss, 212.77.185.81",
+        "user agent, DeBian APT-HTTP/1.3 (0.8.10",
+    })
+    void testValidFilteredOneLogDate(String field, String value) {
+        List<String> logsAfterFilter = LogFilter.sortLogsByInputFields(logsBeforeFilter, field, value);
+
+        assertThat(logsAfterFilter.size()).isEqualTo(1);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"ip address", "request", "status code", "user agent"})
+    void testCorrectFilteredZeroLogDates(String field) {
+        List<String> logsAfterFilter =
+            LogFilter.sortLogsByInputFields(logsBeforeFilter, field, "Every not found input");
+
+        assertThat(logsAfterFilter.size()).isEqualTo(0);
     }
 
     @Test
-    void testFilterCase1() {
-        LocalDateTime startTime = LocalDateTime.parse("17/May/2015:14:00:00 +0000", LogFilter.DATE_FORMATTER);
-        LocalDateTime endTime = LocalDateTime.parse("17/May/2015:16:00:00 +0000", LogFilter.DATE_FORMATTER);
-
-        List<LogReport> sortedLogs = LogFilter.filterAndSortLogsByTimeRange(logList, startTime, endTime);
-
-        assertThat(sortedLogs.getFirst().timestamp()).isEqualTo("17/May/2015:14:05:39 +0000");
-        assertThat(sortedLogs.getLast().timestamp()).isEqualTo("17/May/2015:15:05:01 +0000");
+    void testInvalidInput() {
+        assertThatThrownBy(() ->
+            LogFilter.sortLogsByInputFields(logsBeforeFilter, "incorrect input", "Every input"))
+            .isInstanceOf(IllegalArgumentException.class);
     }
-
-    @Test
-    void testFilterCase2() {
-        LocalDateTime startTime = LocalDateTime.parse("17/May/2015:14:00:00 +0000", LogFilter.DATE_FORMATTER);
-        LocalDateTime endTime = LocalDateTime.parse("17/May/2015:15:00:00 +0000", LogFilter.DATE_FORMATTER);
-
-        List<LogReport> sortedLogs = LogFilter.filterAndSortLogsByTimeRange(logList, startTime, endTime);
-
-        assertThat(sortedLogs.size()).isEqualTo(1);
-    }
-
 }
