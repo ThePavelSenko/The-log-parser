@@ -36,7 +36,7 @@ class LogReportFormatterTest {
     }
 
     @Test
-    public void testFormatter() {
+    void testFormatter() {
         assertThat(report).contains("TotalRequest - total Requests").contains("4");
         assertThat(report).contains("CodeStatuses - code Statuses")
             .contains("404")

@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LogParserTest {
 
     @Test
-    public void testValidLogParse() {
+    void testValidLogParse() {
         LogReport logReport = LogParser.parseLog(TestDataProvider.SAMPLE_EARLY_LOG);
 
 
@@ -27,7 +27,7 @@ public class LogParserTest {
     }
 
     @Test
-    public void testInvalidLogParse() {
+    void testInvalidLogParse() {
         String emptyLog = "";
         String invalidLog = "Invalid log";
 

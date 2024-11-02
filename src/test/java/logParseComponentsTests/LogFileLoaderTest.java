@@ -16,7 +16,7 @@ public class LogFileLoaderTest {
         TestDataProvider.SAMPLE_FILE
     })
     @Timeout(value = 10)
-    public void testValidLoad(String fileOrUrl) {
+    void testValidLoad(String fileOrUrl) {
         try {
             List<String> logs = LogFileLoader.loadLogs(fileOrUrl);
 

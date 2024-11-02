@@ -15,7 +15,7 @@ public class LogFilterTest {
     List<LogReport> logList = new ArrayList<>();
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         LogReport earlyLogReport = LogParser.parseLog(TestDataProvider.SAMPLE_EARLY_LOG);
 
         LogReport lateLogReport = LogParser.parseLog(TestDataProvider.SAMPLE_LATE_LOG);
@@ -24,7 +24,7 @@ public class LogFilterTest {
     }
 
     @Test
-    public void testFilterCase1() {
+    void testFilterCase1() {
         LocalDateTime startTime = LocalDateTime.parse("17/May/2015:14:00:00 +0000", LogFilter.DATE_FORMATTER);
         LocalDateTime endTime = LocalDateTime.parse("17/May/2015:16:00:00 +0000", LogFilter.DATE_FORMATTER);
 
@@ -35,7 +35,7 @@ public class LogFilterTest {
     }
 
     @Test
-    public void testFilterCase2() {
+    void testFilterCase2() {
         LocalDateTime startTime = LocalDateTime.parse("17/May/2015:14:00:00 +0000", LogFilter.DATE_FORMATTER);
         LocalDateTime endTime = LocalDateTime.parse("17/May/2015:15:00:00 +0000", LogFilter.DATE_FORMATTER);
 

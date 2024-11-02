@@ -12,12 +12,12 @@ public class AverageResponseSizeObserverTest {
     private AverageResponseSizeObserver observer;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         observer = new AverageResponseSizeObserver();
     }
 
     @Test
-    public void testAverageResponseSizeSingleLog() {
+    void testAverageResponseSizeSingleLog() {
         LogReport log1 = LogParser.parseLog(TestDataProvider.SAMPLE_EARLY_LOG);
         observer.update(log1);
 
@@ -25,7 +25,7 @@ public class AverageResponseSizeObserverTest {
     }
 
     @Test
-    public void testAverageResponseSizeMultipleLogs() {
+    void testAverageResponseSizeMultipleLogs() {
         LogReport log1 = LogParser.parseLog(TestDataProvider.SAMPLE_EARLY_LOG);
         LogReport log2 = LogParser.parseLog(TestDataProvider.SAMPLE_LATE_LOG);
 
@@ -37,8 +37,7 @@ public class AverageResponseSizeObserverTest {
     }
 
     @Test
-    public void testAverageResponseSizeNoLogs() {
-        // При отсутствии логов средний размер ответа должен быть 0
+    void testAverageResponseSizeNoLogs() {
         assertEquals(0, observer.averageResponseSize());
     }
 }
