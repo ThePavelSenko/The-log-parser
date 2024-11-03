@@ -26,6 +26,9 @@ public final class Logic {
         "Enter the start and end times in the format dd/MMM/yyyy HH:mm:ss. If you want to skip, just press Enter.";
     private static final String PROMPT_FIELD_FILTER = "Enter the field to filter by (e.g., 'ip address'): ";
     private static final String PROMPT_VALUE_FILTER = "Enter the value to filter by: ";
+    private static final String PROMPT_REPORT_FORMAT = "Enter report format (Markdown/AsciiDoc): ";
+    private static final String MESSAGE_REPORT_GENERATED = "Report has been successfully generated and saved to ";
+    private static final String MARKDOWN = "markdown";
 
     public static void startLogic(String fileOrURL) {
         String fileName = extractFileName(fileOrURL);
@@ -48,19 +51,32 @@ public final class Logic {
             List<String> filteredLogs = LogFilter.sortLogsByInputFields(logsBeforeParse, field, value);
 
             // Parse logs and notify observers
-            for (String log : filteredLogs) {
-                LogParser.parseLog(log);
-            }
+            filteredLogs.forEach(LogParser::parseLog);
 
-            // Generate report if observers are available
+            // Generate and save report if observers are available
             if (!LogParser.observers().isEmpty()) {
-                LogReportFormatter reportFormatter = new LogReportFormatter(fileName, LogParser.observers());
-                out.println(reportFormatter.generateAdocReport());
+                out.print(PROMPT_REPORT_FORMAT);
+                String format = scanner.nextLine().trim().toLowerCase();
+                String reportFileName = fileName + "_log_report." + (format.equals(MARKDOWN) ? "md" : "adoc");
+
+                // Generate report using static methods from LogReportFormatter
+                if (MARKDOWN.equals(format)) {
+                    LogReportFormatter.generateMarkdownReport(reportFileName, LogParser.observers());
+                } else if ("asciidoc".equals(format)) {
+                    LogReportFormatter.generateAdocReport(reportFileName, LogParser.observers());
+                } else {
+                    out.println("Invalid format. Defaulting to AsciiDoc.");
+                    LogReportFormatter.generateAdocReport(reportFileName, LogParser.observers());
+                }
+
+                out.println(MESSAGE_REPORT_GENERATED + reportFileName);
             } else {
                 log.warn("No observers available to generate a report.");
             }
 
-        } catch (IOException | IllegalStateException e) {
+        } catch (IOException e) {
+            log.error("An error occurred while writing the report file: {}", e.getMessage());
+        } catch (IllegalStateException e) {
             log.error("An error occurred while processing logs: {}", e.getMessage());
         }
     }
