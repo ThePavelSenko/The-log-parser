@@ -6,47 +6,71 @@ import backend.academy.logParseComponents.LogFileLoader;
 import backend.academy.logParseComponents.LogParser;
 import backend.academy.logParseComponents.LogReportFormatter;
 import dataForTesting.TestDataProvider;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.IOException;
-import java.util.List;
-
 class LogReportFormatterTest {
-    private static String report;
+    private static final String BASE_FILE_NAME = "TestLogFile";
+    private static Path adocReportPath;
+    private static Path mdReportPath;
 
     @BeforeAll
-    static void setUp() {
+    static void setUp() throws IOException {
         LogParser.addObserver(new TotalRequestObserver());
         LogParser.addObserver(new CodeStatusesObserver());
 
-        try {
-            List<String> logLines = LogFileLoader.loadLogs(TestDataProvider.SAMPLE_FILE);
-            String fileName = "TestLogFile";
-            LogReportFormatter formatter = new LogReportFormatter(fileName, LogParser.observers());
+        List<String> logLines = LogFileLoader.loadLogs(TestDataProvider.SAMPLE_FILE);
 
-            for (String line : logLines) {
-                LogParser.parseLog(line);
-            }
+        // Define paths for the reports
+        adocReportPath = Path.of(BASE_FILE_NAME + ".adoc");
+        mdReportPath = Path.of(BASE_FILE_NAME + ".md");
 
-            report = formatter.generateAdocReport(); // Initialize the report
-        } catch (IOException e) {
-            e.printStackTrace();
+        for (String line : logLines) {
+            LogParser.parseLog(line);
         }
     }
 
     @Test
-    void testValueFormatter() {
-        assertThat(report).contains("TotalRequest - total Requests").contains("4");
+    void testAdocReportContent() throws IOException {
+        LogReportFormatter.generateAdocReport(adocReportPath.toString(), LogParser.observers());
+        // Read content from the generated .adoc file
+        String adocContent = Files.readString(adocReportPath);
+
+        // Check if content contains expected metrics with updated formatting
+        assertThat(adocContent).contains("TotalRequest totalRequests", "4");
+        assertThat(adocContent).contains("CodeStatuses codeStatuses", "404", "3", "206", "1");
     }
 
     @Test
-    void testMapFormatter() {
-        assertThat(report).contains("CodeStatuses - code Statuses")
-            .contains("404")
-            .contains("3")
-            .contains("206")
-            .contains("1");
+    public void testMarkdownReportContent() throws Exception {
+        LogReportFormatter.generateMarkdownReport(mdReportPath.toString(), LogParser.observers());
+        String reportFileName = BASE_FILE_NAME + ".md";
+
+        // Check if the file exists
+        Path path = Paths.get(reportFileName);
+        if (!Files.exists(path)) {
+            throw new IllegalStateException("Report file was not created: " + path.toAbsolutePath());
+        }
+
+        // Read content from the generated .md file
+        String mdContent = Files.readString(path);
+
+        // Check if content contains expected metrics with updated formatting
+        assertThat(mdContent).contains("TotalRequest totalRequests", "4");
+        assertThat(mdContent).contains("CodeStatuses codeStatuses", "404", "3", "206", "1");
+    }
+
+    @AfterEach
+    void tearDown() throws IOException {
+        // Delete generated report files after tests
+        Files.deleteIfExists(adocReportPath);
+        Files.deleteIfExists(mdReportPath);
     }
 }

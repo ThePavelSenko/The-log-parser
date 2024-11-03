@@ -14,7 +14,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 public class LogFilterTest {
-    private static List<String> logsBeforeFilter;;
+    private static List<String> logsBeforeFilter;
 
     @BeforeAll
     static void setUp() throws IOException {
@@ -22,13 +22,12 @@ public class LogFilterTest {
     }
 
     @ParameterizedTest
-    @org.junit.jupiter.params.provider.CsvSource({
+    @CsvSource({
         "user agent, Debian",
         "request, GET"
     })
     void testValidFilteredAllLogs(String field, String value) {
         List<String> logsAfterFilter = LogFilter.sortLogsByInputFields(logsBeforeFilter, field, value);
-
         assertThat(logsAfterFilter.size()).isEqualTo(4);
     }
 
@@ -39,7 +38,6 @@ public class LogFilterTest {
     })
     void testValidFilteredOneLogDate(String field, String value) {
         List<String> logsAfterFilter = LogFilter.sortLogsByInputFields(logsBeforeFilter, field, value);
-
         assertThat(logsAfterFilter.size()).isEqualTo(1);
     }
 
@@ -48,7 +46,6 @@ public class LogFilterTest {
     void testCorrectFilteredZeroLogDates(String field) {
         List<String> logsAfterFilter =
             LogFilter.sortLogsByInputFields(logsBeforeFilter, field, "Every not found input");
-
         assertThat(logsAfterFilter.size()).isEqualTo(0);
     }
 
