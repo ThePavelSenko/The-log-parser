@@ -23,7 +23,7 @@ public class LogFilterTest {
 
     @ParameterizedTest
     @CsvSource({
-        "user agent, Debian",
+        "agent, Debian",
         "request, GET"
     })
     void testValidFilteredAllLogs(String field, String value) {
@@ -33,8 +33,8 @@ public class LogFilterTest {
 
     @ParameterizedTest
     @CsvSource({
-        "ip addrEss, 212.77.185.81",
-        "user agent, DeBian APT-HTTP/1.3 (0.8.10",
+        "iP, 212.77.185.81",
+        "agent, DeBian APT-HTTP/1.3 (0.8.10",
     })
     void testValidFilteredOneLogDate(String field, String value) {
         List<String> logsAfterFilter = LogFilter.sortLogsByInputFields(logsBeforeFilter, field, value);
@@ -42,7 +42,7 @@ public class LogFilterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ip address", "request", "status code", "user agent"})
+    @ValueSource(strings = {"ip", "request", "code", "agent"})
     void testCorrectFilteredZeroLogDates(String field) {
         List<String> logsAfterFilter =
             LogFilter.sortLogsByInputFields(logsBeforeFilter, field, "Every not found input");
