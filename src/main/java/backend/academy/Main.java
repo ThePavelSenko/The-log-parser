@@ -1,36 +1,28 @@
 package backend.academy;
 
-import backend.academy.logObservers.AverageResponseSizeObserver;
-import backend.academy.logObservers.CodeStatusesObserver;
-import backend.academy.logObservers.RecourseRequestsObserver;
-import backend.academy.logObservers.RequestsObservers;
-import backend.academy.logObservers.ResponseSizePercentileObserver;
-import backend.academy.logObservers.TotalRequestObserver;
-import backend.academy.logObservers.UniqueUsersObserver;
-import backend.academy.logParseComponents.LogParser;
-import backend.academy.logParseComponents.Logic;
-import java.io.PrintStream;
-import java.util.Scanner;
+import backend.academy.config.CliParams;
+import com.beust.jcommander.JCommander;
 import lombok.experimental.UtilityClass;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @UtilityClass
 public class Main {
+
     public static void main(String[] args) {
-        LogParser.addObserver(new TotalRequestObserver());
-        LogParser.addObserver(new CodeStatusesObserver());
-        LogParser.addObserver(new RecourseRequestsObserver());
-        LogParser.addObserver(new AverageResponseSizeObserver());
-        LogParser.addObserver(new ResponseSizePercentileObserver());
-        LogParser.addObserver(new RequestsObservers());
-        LogParser.addObserver(new UniqueUsersObserver());
+        CliParams params = new CliParams();
+        JCommander commander = JCommander.newBuilder()
+            .addObject(params)
+            .build();
 
-        try (Scanner scanner = new Scanner(System.in)) {
-            PrintStream out = System.out;
-
-            out.println("Input path to file/url in which you want to collect statistics: ");
-            String fileOrUrl = scanner.nextLine();
-
-            Logic.startLogic(fileOrUrl);
+        try {
+            // Parse command-line arguments
+            commander.parse(args);
+            // Run the logic
+            params.run();
+        } catch (Exception e) {
+            log.error("Error parsing command-line arguments: {}", e.getMessage());
+            commander.usage();
         }
     }
 }
