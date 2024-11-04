@@ -69,12 +69,12 @@ public final class LogFilter {
 
     @Getter
     private enum LogField {
-        IP_ADDRESS(1, "ip address"),
+        IP_ADDRESS(1, "ip"),
         REQUEST(3, "request"),
-        STATUS_CODE(4, "status code"),
-        RESPONSE_SIZE(5, "response size"),
+        STATUS_CODE(4, "code"),
+        RESPONSE_SIZE(5, "response_size"),
         REFERRER(6, "referrer"),
-        USER_AGENT(7, "user agent");
+        USER_AGENT(7, "agent");
 
         private final int groupIndex;
         private final String fieldName;
