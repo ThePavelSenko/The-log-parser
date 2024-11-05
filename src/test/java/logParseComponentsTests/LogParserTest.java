@@ -1,19 +1,21 @@
 package logParseComponentsTests;
 
 import backend.academy.exceptions.LogParseException;
-import backend.academy.logParseComponents.LogReport;
 import backend.academy.logParseComponents.LogParser;
+import backend.academy.logParseComponents.LogReport;
 import dataForTesting.TestDataProvider;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LogParserTest {
 
     @Test
+    @DisplayName("Test Parsing Valid Log Entry")
     void testValidLogParse() {
+        // Parse a valid log sample and verify parsed fields
         LogReport logReport = LogParser.parseLog(TestDataProvider.SAMPLE_EARLY_LOG);
-
 
         assertThat(logReport).isNotNull();
 
@@ -27,15 +29,18 @@ public class LogParserTest {
     }
 
     @Test
+    @DisplayName("Test Parsing Invalid Log Entries")
     void testInvalidLogParse() {
         String emptyLog = "";
         String invalidLog = "Invalid log";
 
+        // Verify that parsing invalid log data throws the expected exception
         Assertions.assertThrows(LogParseException.class, () -> {
-            LogReport logReport = LogParser.parseLog(invalidLog);
+            LogParser.parseLog(invalidLog);
         });
+
         Assertions.assertThrows(LogParseException.class, () -> {
-            LogReport logReport = LogParser.parseLog(emptyLog);
+            LogParser.parseLog(emptyLog);
         });
     }
 }
