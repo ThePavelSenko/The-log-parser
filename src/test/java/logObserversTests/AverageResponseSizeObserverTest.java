@@ -1,11 +1,11 @@
 package logObserversTests;
 
-import backend.academy.logParseComponents.*;
-import dataForTesting.TestDataProvider;
 import backend.academy.logObservers.AverageResponseSizeObserver;
+import backend.academy.logParseComponents.LogParser;
+import backend.academy.logParseComponents.LogReport;
+import dataForTesting.TestDataProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AverageResponseSizeObserverTest {
