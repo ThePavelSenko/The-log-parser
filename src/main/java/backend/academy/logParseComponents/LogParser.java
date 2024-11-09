@@ -9,18 +9,28 @@ import java.util.regex.Pattern;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
+
+/**
+ * Utility class for parsing NGNIX log entries and notifying registered observers of parsed log data.
+ *
+ * <p>This parser supports both IPv4 and IPv6 formats in log entries and follows the NGNIX log entry pattern.</p>
+ */
 @Log4j2
 @UtilityClass
 public final class LogParser {
 
     /**
-     * Pattern for parsing NGNIX log entries (supports both IPv4 and IPv6).
+     * Regex pattern for parsing NGNIX log entries. The pattern supports both IPv4 and IPv6 addresses.
+     * <p>
+     * Format of log entry: <code>[IP_ADDRESS] - - [TIMESTAMP] "REQUEST" STATUS_CODE SIZE "REFERRER" "USER_AGENT"</code>
+     * </p>
      */
     public static final String LOG_PATTERN =
         "([\\dA-Fa-f:.]+)\\s+-\\s+-\\s+\\[(.*?)]\\s+\"(.*?)\"\\s+(\\d{3})\\s+(\\d+)\\s+\"(.*?)\"\\s+\"(.*?)\"";
 
     /**
      * List of observers to notify on each log entry parsing.
+     * Observers must implement the {@link LogObserver} interface.
      */
     private static final List<LogObserver> OBSERVERS = new ArrayList<>();
 
@@ -34,11 +44,12 @@ public final class LogParser {
     private static final int USER_AGENT_GROUP = 7;
 
     /**
-     * Adds an observer to the list, allowing dynamic registration of observers.
+     * Registers an observer to be notified of each parsed log entry.
+     * <p>
+     * <b>Note:</b> Improper use of observers may lead to unintended side effects.
+     * </p>
      *
-     * <p>Note: Use this method carefully as improper use may lead to unintended side effects.</p>
-     *
-     * @param observer the observer to add
+     * @param observer the {@link LogObserver} to add
      */
     public static void addObserver(LogObserver observer) {
         OBSERVERS.add(observer);
@@ -46,10 +57,21 @@ public final class LogParser {
     }
 
     /**
-     * Parses a single log line and notifies observers with the parsed log data.
+     * Parses a single log line according to the defined {@code LOG_PATTERN} and notifies observers
+     * with the parsed log data.
      *
-     * @param logLine the log line to parse
-     * @return a LogReport object containing parsed log data
+     * @param logLine the log line to parse; expected format:
+     *                <code>[IP_ADDRESS] - - [TIMESTAMP] "REQUEST" STATUS_CODE SIZE "REFERRER" "USER_AGENT"</code>
+     *                <ul>
+     *                  <li>IP_ADDRESS: A valid IPv4 or IPv6 address</li>
+     *                  <li>TIMESTAMP: Date in the format <code>dd/MMM/yyyy HH:mm:ss</code></li>
+     *                  <li>REQUEST: The HTTP request made</li>
+     *                  <li>STATUS_CODE: HTTP status code (e.g., 200, 404)</li>
+     *                  <li>SIZE: The size of the response in bytes</li>
+     *                  <li>REFERRER: The referring URL (if any)</li>
+     *                  <li>USER_AGENT: The client's user agent string</li>
+     *                </ul>
+     * @return a {@link LogReport} object containing parsed log data
      * @throws LogParseException if the log line is null, empty, or does not match the expected format
      */
     public static LogReport parseLog(String logLine) {
@@ -77,9 +99,9 @@ public final class LogParser {
     /**
      * Extracts log report data from a log line using the regex pattern.
      *
-     * @param logLine the log line to parse
+     * @param logLine the log line to parse; expected to match {@code LOG_PATTERN}
      * @param pattern the compiled regex pattern for log parsing
-     * @return a LogReport containing parsed log data
+     * @return a {@link LogReport} containing parsed log data
      * @throws LogParseException if the log line format is invalid
      */
     private static LogReport getLogReport(String logLine, Pattern pattern) {
@@ -101,7 +123,7 @@ public final class LogParser {
     }
 
     /**
-     * Notifies all observers with the provided log entry.
+     * Notifies all registered observers with the provided log entry.
      *
      * @param logReport the parsed log data to send to observers
      */
@@ -110,12 +132,19 @@ public final class LogParser {
             try {
                 observer.update(logReport);
             } catch (Exception e) {
-                log.error("Error notifying observer {}: {}", observer.getClass().getSimpleName(), e.getMessage(), e);
+                log.error("Error notifying observer {}: {}",
+                    observer.getClass().getSimpleName(), e.getMessage(), e);
             }
         }
     }
 
+    /**
+     * Returns a copy of the registered observers list.
+     *
+     * @return a new list of {@link LogObserver} instances currently registered with this parser
+     */
     public List<LogObserver> observers() {
         return new ArrayList<>(OBSERVERS);
     }
 }
+

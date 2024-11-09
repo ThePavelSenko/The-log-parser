@@ -17,10 +17,35 @@ public final class LogFilter {
     /**
      * Filters and sorts log entries based on the specified field and value.
      *
-     * @param logs  the list of logs to filter
-     * @param field the field name to filter by
-     * @param value the value to filter by
-     * @return a sorted list of filtered logs
+     * <p>Filters log entries by checking if the specified field in each entry contains the provided value.
+     * If field and value are null or blank, it returns the full list of logs unfiltered.
+     * If filtering is successful, it then sorts the filtered entries alphabetically.</p>
+     *
+     * @param logs  the list of log entries to filter, where each entry should follow the pattern defined
+     *              in {@link LogParser#LOG_PATTERN}.
+     *              Expected format includes an IP address, timestamp, request details, status code, response size,
+     *              referrer, and user agent.
+     *              Must not be null. If empty, an empty list will be returned.
+     *
+     * @param field the name of the field to filter by. Accepted values are:
+     *              <ul>
+     *                  <li>"ip" - for filtering by IP address</li>
+     *                  <li>"request" - for filtering by request details</li>
+     *                  <li>"code" - for filtering by HTTP status code</li>
+     *                  <li>"response_size" - for filtering by response size in bytes</li>
+     *                  <li>"referrer" - for filtering by referrer URL</li>
+     *                  <li>"agent" - for filtering by user agent</li>
+     *              </ul>
+     *              If null or blank, filtering will be skipped.
+     *
+     * @param value the substring to search for within the specified field.
+     *              Must be non-null and non-blank to apply filtering.
+     *              If null or blank, filtering will be skipped.
+     *
+     * @return a sorted list of log entries that contain the specified value in the chosen field.
+     *         If no valid logs or fields are found, an empty list will be returned.
+     *
+     * @throws IllegalArgumentException if an invalid field name is provided.
      */
     public static List<String> sortLogsByInputFields(List<String> logs, String field, String value) {
         if (logs == null || logs.isEmpty()) {
@@ -62,6 +87,10 @@ public final class LogFilter {
 
     /**
      * Extracts the field value based on the given LogField directly from the matcher.
+     *
+     * @param matcher the matcher for the log entry pattern
+     * @param field   the log field to extract (e.g., IP address, status code)
+     * @return the value of the specified field in the log entry, or null if the field is not found
      */
     private static String extractField(Matcher matcher, LogField field) {
         return matcher.group(field.groupIndex());
@@ -84,6 +113,12 @@ public final class LogFilter {
             this.fieldName = fieldName;
         }
 
+        /**
+         * Retrieves the LogField enum based on a field name.
+         *
+         * @param field the field name as a string
+         * @return an Optional containing the corresponding LogField enum, or empty if no match is found
+         */
         public static Optional<LogField> fromString(String field) {
             for (LogField logField : values()) {
                 if (logField.fieldName.equalsIgnoreCase(field)) {

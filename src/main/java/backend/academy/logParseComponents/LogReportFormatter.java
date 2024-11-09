@@ -15,7 +15,9 @@ import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
 /**
- * Utility class for generating log reports in different formats.
+ * Utility class for generating log reports in various formats (AsciiDoc and Markdown)
+ * based on metrics from log observers.
+ * It processes metrics obtained from different log observers and formats them for reporting.
  */
 @Log4j2
 @UtilityClass
@@ -38,10 +40,10 @@ public class LogReportFormatter {
     private static final int DEFAULT_KEY_WIDTH = 3;
 
     /**
-     * Generates an AsciiDoc report from log observers' metrics.
+     * Generates an AsciiDoc report from the metrics of the provided log observers and writes it to a file.
      *
-     * @param fileName  the name of the file to write the report to
-     * @param observers  the list of log observers
+     * @param fileName  the name of the file to save the report (AsciiDoc format)
+     * @param observers the list of log observers whose metrics will be included in the report
      */
     public static void generateAdocReport(String fileName, List<LogObserver> observers) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
@@ -60,10 +62,10 @@ public class LogReportFormatter {
     }
 
     /**
-     * Generates a Markdown report from log observers' metrics.
+     * Generates a Markdown report from the metrics of the provided log observers and writes it to a file.
      *
-     * @param fileName  the name of the file to write the report to
-     * @param observers  the list of log observers
+     * @param fileName  the name of the file to save the report (Markdown format)
+     * @param observers the list of log observers whose metrics will be included in the report
      */
     public static void generateMarkdownReport(String fileName, List<LogObserver> observers) {
         String markdownFileName = fileName.replace(".adoc", ".md");
@@ -84,12 +86,13 @@ public class LogReportFormatter {
     }
 
     /**
-     * Processes metrics from observers and writes to the specified writer in the given format.
+     * Processes and formats the metrics from the provided log observers and writes them to the specified writer.
+     * The format will depend on whether the output is intended for AsciiDoc or Markdown.
      *
-     * @param writer     the BufferedWriter to write to
-     * @param observers  the list of log observers
-     * @param isAdoc    flag indicating if the format is AsciiDoc; false for Markdown
-     * @throws IOException if an I/O error occurs
+     * @param writer     the BufferedWriter to which the report will be written
+     * @param observers  the list of log observers from which to collect the metrics
+     * @param isAdoc     flag indicating whether the format is AsciiDoc (true) or Markdown (false)
+     * @throws IOException if an I/O error occurs during report writing
      */
     private static void processAndWriteMetrics(
         BufferedWriter writer,
@@ -120,12 +123,14 @@ public class LogReportFormatter {
     }
 
     /**
-     * Processes metrics for a single observer and adds them to the respective lists.
+     * Processes and collects metrics from a single log observer.
+     * It checks each method in the observer class and extracts the results
+     * if the method is public and has no parameters.
      *
-     * @param observer          the log observer
-     * @param observerName      the name of the observer
+     * @param observer           the log observer from which metrics will be collected
+     * @param observerName       the simple name of the observer class
      * @param singleValueMetrics the list to store single-value metrics
-     * @param mapMetrics        the map to store map metrics
+     * @param mapMetrics         the map to store map-based metrics
      */
     private static void processObserverMetrics(LogObserver observer, String observerName,
         List<String[]> singleValueMetrics,
@@ -150,11 +155,11 @@ public class LogReportFormatter {
     }
 
     /**
-     * Formats and writes single-value metrics in AsciiDoc format.
+     * Formats and writes the single-value metrics in AsciiDoc format.
      *
      * @param writer              the BufferedWriter to write to
      * @param singleValueMetrics  the list of single-value metrics
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs during writing
      */
     private static void formatSingleValueMetricsAdoc(BufferedWriter writer,
         List<String[]> singleValueMetrics) throws IOException {
@@ -179,11 +184,11 @@ public class LogReportFormatter {
     }
 
     /**
-     * Formats and writes single-value metrics in Markdown format.
+     * Formats and writes the single-value metrics in Markdown format.
      *
      * @param writer              the BufferedWriter to write to
      * @param singleValueMetrics  the list of single-value metrics
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs during writing
      */
     private static void formatSingleValueMetricsMarkdown(BufferedWriter writer,
         List<String[]> singleValueMetrics) throws IOException {
@@ -195,11 +200,11 @@ public class LogReportFormatter {
     }
 
     /**
-     * Formats and writes map metrics in AsciiDoc format.
+     * Formats and writes map-based metrics in AsciiDoc format.
      *
      * @param writer      the BufferedWriter to write to
      * @param mapMetrics  the map of metrics
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs during writing
      */
     private static void formatMapMetricsAdoc(BufferedWriter writer,
         Map<String, Map<?, ?>> mapMetrics) throws IOException {
@@ -231,11 +236,11 @@ public class LogReportFormatter {
     }
 
     /**
-     * Formats and writes map metrics in Markdown format.
+     * Formats and writes map-based metrics in Markdown format.
      *
      * @param writer      the BufferedWriter to write to
      * @param mapMetrics  the map of metrics
-     * @throws IOException if an I/O error occurs
+     * @throws IOException if an I/O error occurs during writing
      */
     private static void formatMapMetricsMarkdown(BufferedWriter writer,
         Map<String, Map<?, ?>> mapMetrics) throws IOException {
@@ -254,11 +259,11 @@ public class LogReportFormatter {
     }
 
     /**
-     * Creates a friendly metric name from the observer name and method name.
+     * Converts a method name to a more user-friendly format (e.g., from `getTotalErrors` to `Total Errors`).
      *
-     * @param observerName the name of the observer
-     * @param methodName   the name of the method
-     * @return a formatted friendly name
+     * @param observerName  the name of the observer class
+     * @param methodName    the method name to convert
+     * @return the formatted metric name
      */
     private static String createFriendlyName(String observerName, String methodName) {
         return observerName + " " + methodName;

@@ -18,24 +18,33 @@ import java.util.regex.Pattern;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
+/**
+ * Utility class for loading log files or URLs and filtering log entries by timestamp.
+ * This class provides methods for:
+ * - Loading logs from both file paths and URLs.
+ * - Validating the input path or URL for accessibility.
+ * - Parsing timestamps from log entries and filtering them by a specified time range.
+ *
+ * Supported timestamp format for logs: "dd/MMM/yyyy:HH:mm:ss Z" (e.g., "12/Oct/2024:15:32:45 +0000").
+ */
 @Log4j2
 @UtilityClass
 public final class LogFileLoader {
 
     /**
-     * Loads and parses log data from a file or URL, then filters the log entries by timestamp if specified.
+     * Loads log data from a specified file path or URL, with optional filtering by timestamp range.
      *
-     * @param fileOrUrl the file path or URL to load logs from
-     * @param startTime the start timestamp for filtering logs (inclusive)
-     * @param endTime the end timestamp for filtering logs (exclusive)
-     * @return a list of log lines matching the criteria
-     * @throws IOException if an I/O error occurs during file or URL reading
-     * @throws LogParseException if the provided path is not valid
+     * @param fileOrUrl the file path or URL to load logs from. Can be a local file path or a valid HTTP/HTTPS URL.
+     * @param startTime the starting timestamp to filter logs (inclusive). If null, no lower bound is applied.
+     * @param endTime the ending timestamp to filter logs (exclusive). If null, no upper bound is applied.
+     * @return a list of log lines that fall within the specified timestamp range.
+     * @throws IOException if an I/O error occurs while reading the file or URL.
+     * @throws LogParseException if the input path is invalid or the file is inaccessible.
      */
     public static List<String> loadLogs(String fileOrUrl, LocalDateTime startTime, LocalDateTime endTime)
         throws IOException, LogParseException {
 
-        validateInputPath(fileOrUrl);  // Validate the input path
+        validateInputPath(fileOrUrl); // Ensure the path or URL is valid
         List<String> logLines = new ArrayList<>();
 
         if (isUrl(fileOrUrl)) {
@@ -52,33 +61,32 @@ public final class LogFileLoader {
             logLines = Files.readAllLines(Paths.get(fileOrUrl));
         }
 
-        // Filter log lines by timestamps if startTime and endTime are specified
-        return processLogLines(logLines, startTime, endTime);
+        return processLogLines(logLines, startTime, endTime); // Filter logs by timestamps
     }
 
     /**
-     * Overloaded method to load logs without timestamp filtering.
+     * Loads all log data from a specified file path or URL without filtering by timestamp.
      *
-     * @param fileOrUrl the file path or URL to load logs from
-     * @return a list of log lines
-     * @throws IOException if an I/O error occurs
+     * @param fileOrUrl the file path or URL to load logs from.
+     * @return a list of all log lines from the specified source.
+     * @throws IOException if an I/O error occurs while reading the file or URL.
      */
     public static List<String> loadLogs(String fileOrUrl) throws IOException {
         return loadLogs(fileOrUrl, null, null);
     }
 
     /**
-     * Validates the input path, checking if it is a valid file or accessible URL.
+     * Validates the specified path or URL for accessibility.
+     * - If a URL is provided, it checks if the URL is reachable.
+     * - If a file path is provided, it checks if the file exists and is readable.
      *
-     * @param path the file path or URL to validate
-     * @throws LogParseException if the path is invalid or inaccessible
+     * @param path the file path or URL to validate.
+     * @throws LogParseException if the path or URL is inaccessible or has an invalid format.
      */
     private static void validateInputPath(String path) throws LogParseException {
         if (isUrl(path)) {
-            // Validate URL format and accessibility
             try {
                 URL url = new URL(path);
-                // Attempt to open a connection to check accessibility
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
                     log.info("URL is valid and accessible: {}", path);
                 } catch (IOException e) {
@@ -90,7 +98,6 @@ public final class LogFileLoader {
                 throw new LogParseException("Invalid URL format: " + path);
             }
         } else {
-            // Validate file path
             Path filePath = Paths.get(path);
             if (!Files.exists(filePath) || !Files.isReadable(filePath)) {
                 log.error("The file does not exist or is not readable: {}", path);
@@ -99,14 +106,13 @@ public final class LogFileLoader {
         }
     }
 
-
     /**
-     * Processes log lines, filtering by timestamp if startTime and/or endTime are provided.
+     * Processes log entries, applying optional filtering by a specified timestamp range.
      *
-     * @param logLines the list of log lines to process
-     * @param startTime the start timestamp for filtering (inclusive)
-     * @param endTime the end timestamp for filtering (exclusive)
-     * @return a list of log lines within the specified time range
+     * @param logLines the list of log lines to process.
+     * @param startTime the starting timestamp to filter logs (inclusive). If null, no lower bound is applied.
+     * @param endTime the ending timestamp to filter logs (exclusive). If null, no upper bound is applied.
+     * @return a list of log entries that match the specified timestamp range.
      */
     private static List<String> processLogLines(List<String> logLines, LocalDateTime startTime, LocalDateTime endTime) {
         List<String> filteredLines = new ArrayList<>();
@@ -115,10 +121,9 @@ public final class LogFileLoader {
             try {
                 Matcher matcher = Pattern.compile(LogParser.LOG_PATTERN).matcher(line);
                 if (matcher.matches()) {
-                    String timeStamp = matcher.group(2); // Timestamp is the second group
+                    String timeStamp = matcher.group(2); // Extract timestamp from log entry
                     LocalDateTime logTime = parseLogTimestamp(timeStamp);
 
-                    // Filter by startTime and endTime independently
                     boolean isAfterOrEqualStart = startTime == null || !logTime.isBefore(startTime);
                     boolean isBeforeEnd = endTime == null || logTime.isBefore(endTime);
 
@@ -126,7 +131,7 @@ public final class LogFileLoader {
                         filteredLines.add(line);
                     }
                 } else {
-                    log.warn("Log line does not match the pattern: {}", line);
+                    log.warn("Log line does not match the expected pattern: {}", line);
                 }
             } catch (LogParseException e) {
                 log.error("Failed to parse log line: {}", line, e);
@@ -135,12 +140,11 @@ public final class LogFileLoader {
         return filteredLines;
     }
 
-
     /**
-     * Parses the log timestamp into a LocalDateTime.
+     * Converts a timestamp string from a log entry to a LocalDateTime.
      *
-     * @param timestamp the timestamp string from a log entry
-     * @return the parsed LocalDateTime
+     * @param timestamp the timestamp string to parse, expected in the format "dd/MMM/yyyy:HH:mm:ss Z".
+     * @return the parsed LocalDateTime.
      */
     private static LocalDateTime parseLogTimestamp(String timestamp) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
@@ -148,10 +152,10 @@ public final class LogFileLoader {
     }
 
     /**
-     * Determines if the provided path is a URL.
+     * Checks if the provided path is a URL.
      *
-     * @param path the path to check
-     * @return true if the path is a URL, false otherwise
+     * @param path the path to check.
+     * @return true if the path starts with "http://" or "https://", otherwise false.
      */
     private static boolean isUrl(String path) {
         return path.startsWith("http://") || path.startsWith("https://");
