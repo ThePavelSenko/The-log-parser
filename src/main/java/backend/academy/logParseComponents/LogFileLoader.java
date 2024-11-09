@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
@@ -24,7 +23,7 @@ import lombok.extern.log4j.Log4j2;
  * - Loading logs from both file paths and URLs.
  * - Validating the input path or URL for accessibility.
  * - Parsing timestamps from log entries and filtering them by a specified time range.
- *
+ * <p>
  * Supported timestamp format for logs: "dd/MMM/yyyy:HH:mm:ss Z" (e.g., "12/Oct/2024:15:32:45 +0000").
  */
 @Log4j2
@@ -119,7 +118,7 @@ public final class LogFileLoader {
 
         for (String line : logLines) {
             try {
-                Matcher matcher = Pattern.compile(LogParser.LOG_PATTERN).matcher(line);
+                Matcher matcher = LogParser.COMPILED_LOG_PATTERN.matcher(line);
                 if (matcher.matches()) {
                     String timeStamp = matcher.group(2); // Extract timestamp from log entry
                     LocalDateTime logTime = parseLogTimestamp(timeStamp);

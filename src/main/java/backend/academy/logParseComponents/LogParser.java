@@ -9,7 +9,6 @@ import java.util.regex.Pattern;
 import lombok.experimental.UtilityClass;
 import lombok.extern.log4j.Log4j2;
 
-
 /**
  * Utility class for parsing NGNIX log entries and notifying registered observers of parsed log data.
  *
@@ -25,8 +24,11 @@ public final class LogParser {
      * Format of log entry: <code>[IP_ADDRESS] - - [TIMESTAMP] "REQUEST" STATUS_CODE SIZE "REFERRER" "USER_AGENT"</code>
      * </p>
      */
-    public static final String LOG_PATTERN =
+    private static final String LOG_PATTERN =
         "([\\dA-Fa-f:.]+)\\s+-\\s+-\\s+\\[(.*?)]\\s+\"(.*?)\"\\s+(\\d{3})\\s+(\\d+)\\s+\"(.*?)\"\\s+\"(.*?)\"";
+
+    // Compiled pattern for log parsing, to avoid recompiling each time
+    public static final Pattern COMPILED_LOG_PATTERN = Pattern.compile(LOG_PATTERN);
 
     /**
      * List of observers to notify on each log entry parsing.
@@ -62,15 +64,6 @@ public final class LogParser {
      *
      * @param logLine the log line to parse; expected format:
      *                <code>[IP_ADDRESS] - - [TIMESTAMP] "REQUEST" STATUS_CODE SIZE "REFERRER" "USER_AGENT"</code>
-     *                <ul>
-     *                  <li>IP_ADDRESS: A valid IPv4 or IPv6 address</li>
-     *                  <li>TIMESTAMP: Date in the format <code>dd/MMM/yyyy HH:mm:ss</code></li>
-     *                  <li>REQUEST: The HTTP request made</li>
-     *                  <li>STATUS_CODE: HTTP status code (e.g., 200, 404)</li>
-     *                  <li>SIZE: The size of the response in bytes</li>
-     *                  <li>REFERRER: The referring URL (if any)</li>
-     *                  <li>USER_AGENT: The client's user agent string</li>
-     *                </ul>
      * @return a {@link LogReport} object containing parsed log data
      * @throws LogParseException if the log line is null, empty, or does not match the expected format
      */
@@ -80,8 +73,7 @@ public final class LogParser {
         }
 
         try {
-            Pattern pattern = Pattern.compile(LOG_PATTERN);
-            LogReport logReport = getLogReport(logLine, pattern);
+            LogReport logReport = getLogReport(logLine);
 
             // Notify all registered observers with the parsed log entry
             notifyObservers(logReport);
@@ -97,15 +89,14 @@ public final class LogParser {
     }
 
     /**
-     * Extracts log report data from a log line using the regex pattern.
+     * Extracts log report data from a log line using the compiled regex pattern.
      *
      * @param logLine the log line to parse; expected to match {@code LOG_PATTERN}
-     * @param pattern the compiled regex pattern for log parsing
      * @return a {@link LogReport} containing parsed log data
      * @throws LogParseException if the log line format is invalid
      */
-    private static LogReport getLogReport(String logLine, Pattern pattern) {
-        Matcher matcher = pattern.matcher(logLine);
+    private static LogReport getLogReport(String logLine) {
+        Matcher matcher = COMPILED_LOG_PATTERN.matcher(logLine);
 
         if (!matcher.matches()) {
             throw new LogParseException("Invalid log format: " + logLine);
@@ -147,4 +138,3 @@ public final class LogParser {
         return new ArrayList<>(OBSERVERS);
     }
 }
-

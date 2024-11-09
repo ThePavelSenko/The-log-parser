@@ -22,7 +22,7 @@ public final class LogFilter {
      * If filtering is successful, it then sorts the filtered entries alphabetically.</p>
      *
      * @param logs  the list of log entries to filter, where each entry should follow the pattern defined
-     *              in {@link LogParser#LOG_PATTERN}.
+     *              in {@link LogParser#COMPILED_LOG_PATTERN}.
      *              Expected format includes an IP address, timestamp, request details, status code, response size,
      *              referrer, and user agent.
      *              Must not be null. If empty, an empty list will be returned.
@@ -66,7 +66,7 @@ public final class LogFilter {
 
         List<String> filteredLogs = new ArrayList<>();
         try {
-            Pattern pattern = Pattern.compile(LogParser.LOG_PATTERN);
+            Pattern pattern = LogParser.COMPILED_LOG_PATTERN;
             for (String logEntry : logs) {
                 Matcher matcher = pattern.matcher(logEntry);
 
