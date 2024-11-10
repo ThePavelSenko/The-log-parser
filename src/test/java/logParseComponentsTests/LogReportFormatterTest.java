@@ -59,8 +59,8 @@ class LogReportFormatterTest {
         String adocContent = Files.readString(adocReportPath);
 
         // Verify that the content includes the expected metrics with the correct format
-        assertThat(adocContent).contains("TotalRequest totalRequests", "4");
-        assertThat(adocContent).contains("CodeStatuses codeStatuses", "404", "3", "206", "1");
+        assertThat(adocContent).contains("totalRequests", "4");
+        assertThat(adocContent).contains("codeStatuses", "404", "3", "206", "1");
     }
 
     @Test
@@ -73,7 +73,7 @@ class LogReportFormatterTest {
         String mdContent = Files.readString(mdReportPath);
 
         // Verify that the content includes the expected metrics with the correct format
-        assertThat(mdContent).contains("TotalRequest totalRequests", "4");
-        assertThat(mdContent).contains("CodeStatuses codeStatuses", "404", "3", "206", "1");
+        assertThat(mdContent).contains("totalRequests", "4");
+        assertThat(mdContent).contains("codeStatuses", "404", "3", "206", "1");
     }
 }

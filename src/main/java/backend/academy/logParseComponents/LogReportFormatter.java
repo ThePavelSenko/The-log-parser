@@ -30,8 +30,8 @@ public class LogReportFormatter {
     private static final String PIPE_SPACE = " | ";
     private static final String PIPE_NEWLINE = " |\n";
     private static final String MARKDOWN_PIPE_HEADER = "| Metric | Value |\n|--------|-------|\n";
-    private static final String ADOC_MAP_HEADER_TEMPLATE = "#### %s (Map)\n\n";
-    private static final String MARKDOWN_MAP_HEADER_TEMPLATE = "\n## %s (Map)\n\n";
+    private static final String ADOC_MAP_HEADER_TEMPLATE = "#### %s \n\n";
+    private static final String MARKDOWN_MAP_HEADER_TEMPLATE = "\n## %s \n\n";
     private static final String BACKTICK_LOG_FILE = "`";
     private static final String NEWLINE = "\n";
     private static final String DOUBLE_NEWLINE = "\n\n";
@@ -139,7 +139,7 @@ public class LogReportFormatter {
             if (Modifier.isPublic(method.getModifiers()) && method.getParameterCount() == 0) {
                 try {
                     Object value = method.invoke(observer);
-                    String metricName = createFriendlyName(observerName, method.getName());
+                    String metricName = method.getName();
 
                     if (value instanceof Map) {
                         mapMetrics.put(metricName, (Map<?, ?>) value);
@@ -256,16 +256,5 @@ public class LogReportFormatter {
                 writer.write("| " + mapEntry.getKey() + PIPE_SPACE + mapEntry.getValue() + PIPE_NEWLINE);
             }
         }
-    }
-
-    /**
-     * Converts a method name to a more user-friendly format (e.g., from `getTotalErrors` to `Total Errors`).
-     *
-     * @param observerName  the name of the observer class
-     * @param methodName    the method name to convert
-     * @return the formatted metric name
-     */
-    private static String createFriendlyName(String observerName, String methodName) {
-        return observerName + " " + methodName;
     }
 }
